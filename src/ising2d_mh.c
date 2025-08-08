@@ -12,10 +12,9 @@ typedef struct
   int ny;
 } field2d;
 
-int main()
+int ising2d_mh(double beta, double *energy_ptr, double *mag_ptr, double *autocorr_ptr, int verbose)
 {
   field2d f;
-  double beta;
   double energy, *energy_lst, *mag_lst;
   int n, mcs, nsamples, mcsequiv, mcsinterval, lag_max;
   FILE *fp, *fpa, *fpm;
@@ -25,20 +24,21 @@ int main()
   mcsequiv = 10000;
   mcsinterval = 1;
   lag_max = 1000;
-
-  beta = 0.44;
   mcs = n * n;
 
-  fp = fopen("ising2d_mh.dat", "w");
-  fpa = fopen("ising2d_mh_autocorr.dat", "w");
-  fpm = fopen("ising2d_mh_meta.dat", "w");
+  if (verbose)
+  {
+    fp = fopen("ising2d_mh.dat", "w");
+    fpa = fopen("ising2d_mh_autocorr.dat", "w");
+    fpm = fopen("ising2d_mh_meta.dat", "w");
 
-  fprintf(fpm, "Lattice size: %d x %d\n", n, n);
-  fprintf(fpm, "Monte Carlo steps per sweep: %d\n", mcs);
-  fprintf(fpm, "Number of samples: %d\n", nsamples);
-  fprintf(fpm, "Equilibration steps: %d\n", mcsequiv);
-  fprintf(fpm, "MCS interval: %d\n", mcsinterval);
-  fprintf(fpm, "Beta: %f\n", beta);
+    fprintf(fpm, "Lattice size: %d x %d\n", n, n);
+    fprintf(fpm, "Monte Carlo steps per sweep: %d\n", mcs);
+    fprintf(fpm, "Number of samples: %d\n", nsamples);
+    fprintf(fpm, "Equilibration steps: %d\n", mcsequiv);
+    fprintf(fpm, "MCS interval: %d\n", mcsinterval);
+    fprintf(fpm, "Beta: %f\n", beta);
+  }
 
   srand48(0);
 
@@ -108,8 +108,8 @@ int main()
       for (int k = 0; k < f.nx * f.ny; k++)
         magnetization += f.v[k];
       mag_lst[sample_index] = fabs(magnetization / (f.nx * f.ny));
-      fprintf(fp, "%d %f %f\n", sample_index,
-              energy_lst[sample_index], mag_lst[sample_index]);
+      if (verbose)
+        fprintf(fp, "%d %f %f\n", sample_index, energy_lst[sample_index], mag_lst[sample_index]);
     }
   }
 
@@ -121,28 +121,53 @@ int main()
   }
   mean_energy /= nsamples;
   mean_mag /= nsamples;
-  fprintf(fpm, "Mean Energy: %f\n", mean_energy);
-  fprintf(fpm, "Mean Magnetization: %f\n", mean_mag);
+  if (verbose)
+  {
+    fprintf(fpm, "Mean Energy: %f\n", mean_energy);
+    fprintf(fpm, "Mean Magnetization: %f\n", mean_mag);
+  }
 
   double *autocorr_mag;
   autocorr_mag = (double *)malloc(lag_max * sizeof(double));
   if (autocorr_mag == NULL)
   {
     fprintf(stderr, "Memory allocation failed for autocorrelation array\n");
+    free(f.v);
+    free(energy_lst);
+    free(mag_lst);
+    return 1;
   }
   for (int lag = 0; lag < lag_max; lag++)
   {
     autocorr_mag[lag] = autocorrelation(mag_lst, mean_mag, nsamples, lag);
-    fprintf(fpa, "%d %f\n", lag * mcsinterval, autocorr_mag[lag]);
+    if (verbose)
+      fprintf(fpa, "%d %f\n", lag * mcsinterval, autocorr_mag[lag]);
+  }
+
+  *energy_ptr = mean_energy;
+  *mag_ptr = mean_mag;
+  *autocorr_ptr = autocorrelation_time(autocorr_mag, lag_max);
+  if (*autocorr_ptr < 0)
+  {
+    fprintf(stderr, "Error calculating autocorrelation time %f\n", *autocorr_ptr);
+    free(f.v);
+    free(energy_lst);
+    free(mag_lst);
+    free(autocorr_mag);
+    return 1;
   }
 
   free(f.v);
   free(energy_lst);
   free(mag_lst);
   free(autocorr_mag);
-  fclose(fp);
-  fclose(fpa);
-  fclose(fpm);
+
+  if (verbose)
+  {
+    fclose(fp);
+    fclose(fpa);
+    fclose(fpm);
+  }
 
   return 0;
 }
