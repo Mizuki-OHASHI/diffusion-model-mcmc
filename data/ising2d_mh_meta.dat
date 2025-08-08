@@ -1,0 +1,8 @@
+Lattice size: 32 x 32
+Monte Carlo steps per sweep: 1024
+Number of samples: 10000
+Equilibration steps: 10000
+MCS interval: 1
+Beta: 0.440000
+Mean Energy: -1.430950
+Mean Magnetization: 0.653326
