@@ -13,6 +13,7 @@ int main()
     return 1;
   }
 
+#pragma omp parallel for
   for (int i = 0; i < n_beta; i++)
   {
     double beta, energy, mag, autocorr;

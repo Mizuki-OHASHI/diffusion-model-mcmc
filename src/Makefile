@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -O3
+# CFLAGS = -O3
+CFLAGS = -O3 -fopenmp -Wall -Wextra -Wpedantic -std=c99
 
 default: ising2d_mh_run ising2d_mh_sweep xy2d_mh_run xy2d_mh_sweep
 
