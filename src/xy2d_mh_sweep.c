@@ -22,7 +22,7 @@ int main()
     {
       fprintf(stderr, "Error in xy2d_mh for beta = %f\n", beta);
       fclose(fp);
-      return 1;
+      continue;
     }
     fprintf(fp, "%f %f %f %f\n", beta, energy, mag, autocorr);
   }
