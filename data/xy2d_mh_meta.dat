@@ -1,0 +1,9 @@
+Lattice size: 32 x 32
+Number of samples: 10000
+Equilibration steps: 10000
+MCS interval: 10
+Beta: 0.800000
+Mean Energy: -0.990551
+Helicity Modulus (from mean values): 0.013151
+Mean of instantaneous Helicity Modulus: 0.013151
+Autocorrelation time of Helicity Modulus: 4.713063
